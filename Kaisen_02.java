@@ -42,28 +42,27 @@ class Kaisen_02 extends JFrame implements KeyListener {
 		size = getSize();
 		back = createImage(size.width, size.height);
 		if (back == null)
-			System.out.print("createImage Error");
+			System.err.print("createImage Error");
 	}
 
 	// Runnable Class
 	class ThreadClass implements Runnable {
+		@override
 		public void run() {
-			long nowTime, drawTime;
-
-			nowTime = System.currentTimeMillis();
-			drawTime = nowTime + 500;
-			while (true) {
-				nowTime = System.currentTimeMillis();
-				if (drawTime < nowTime) {
-					drawTime = nowTime + 200;// デフォルト30値が大きいほど一回当たりの移動（反応）が遅い
+			try {
+				while (true) {
 					if (action())
 						repaint();
+					Thread.sleep(200);
 				}
+			} catch (InterruptedException e) {
+				e.printStackTrace();
 			}
 		}
 	}
 
 	// Paint Method
+	@override
 	public void paint(Graphics g) {
 		if (back == null)
 			return;
@@ -81,21 +80,18 @@ class Kaisen_02 extends JFrame implements KeyListener {
 			posLC.y = pos.y;
 			// posLC =pos;//はなぜか意図した動作にならない
 			buffer.drawImage(img[2], pos.x, pos.y, this);
-		}
-		if (phase == 2) {// 艦の投錨　固定状態へ
+		} else if (phase == 2) {// 艦の投錨　固定状態へ
 			buffer.drawImage(img[2], posLC.x, posLC.y, this);
-		}
-		if (posLC.x == pos.y && posLC.y == pos.y && phase >= 3) {// 艦の抜錨　可動状態へ
+		} else if (posLC.x == pos.y && posLC.y == pos.y && phase >= 3) {// 艦の抜錨　可動状態へ
 			buffer.drawImage(img[2], pos.x, pos.y, this);
 			phase = 1;
-		}
-		if (phase >= 3) {// 艦の先端を選べていない　可動状態にするには船首を選ぶ
+		} else if (phase >= 3) {// 艦の先端を選べていない　可動状態にするには船首を選ぶ
 			// JLabel jl=new JLabel();//TODO Jpanelをバッファに追加したい
 			// jl.setText("艦の先端を選べていません。可動状態にするには船首を選んでください");
 			buffer.drawImage(img[2], posLC.x, posLC.y, this);
 			phase = 2;
 		}
-		 System.out.println(posLC+ " " + pos+" "+phase);//デバック
+		System.out.println(posLC+ " " + pos+" "+phase);//デバック
 		buffer.drawImage(img[0], pos.x, pos.y, this);
 
 		// buffer.paintIcon(img01, pos.x, pos.y, this);
@@ -114,14 +110,15 @@ class Kaisen_02 extends JFrame implements KeyListener {
 
 	// カーソルが海マップをはみ出したときに反対側から戻ってくるような処理
 	public void mapEnd() {
-		if (pos.x < MAPMIN_X)
+		if (pos.x < MAPMIN_X) {
 			pos.x += 30 * MAPMAX_X;
-		if (pos.x > MAPMIN_X + 30 * (MAPMAX_X - 1))
+		} else if (pos.x > MAPMIN_X + 30 * (MAPMAX_X - 1)) {
 			pos.x -= 30 * MAPMAX_X;
-		if (pos.y < MAPMIN_Y)
+		} else if (pos.y < MAPMIN_Y) {
 			pos.y += 30 * MAPMAX_Y;
-		if (pos.y > MAPMIN_Y + 30 * (MAPMAX_Y - 1))
+		} else if (pos.y > MAPMIN_Y + 30 * (MAPMAX_Y - 1)) {
 			pos.y -= 30 * MAPMAX_Y;
+		}
 	}
 
 	// カーソルの移動
@@ -150,6 +147,7 @@ class Kaisen_02 extends JFrame implements KeyListener {
 	}
 
 	// KeyEvent Listener
+	@override
 	public void keyPressed(KeyEvent e) {
 		switch (e.getKeyCode()) {
 		case KeyEvent.VK_UP:
@@ -170,6 +168,7 @@ class Kaisen_02 extends JFrame implements KeyListener {
 		}
 	}
 
+	@override
 	public void keyReleased(KeyEvent e) {
 		switch (e.getKeyCode()) {
 		case KeyEvent.VK_UP:
@@ -190,6 +189,7 @@ class Kaisen_02 extends JFrame implements KeyListener {
 		}
 	}
 
+	@override
 	public void keyTyped(KeyEvent e) {
 	}
 }
