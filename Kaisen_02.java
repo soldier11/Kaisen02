@@ -12,6 +12,7 @@ import java.io.IOException;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 import javax.swing.border.LineBorder;
 
 
@@ -30,7 +31,17 @@ class Kaisen_02 extends JFrame implements KeyListener {
 
 	// Main
 	public static void main(String args[]) throws IOException {
-		new Kaisen_02();
+		// 安全なJFrameの生成
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					new Kaisen_02();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		});
 	}
 
 	// Constructor
