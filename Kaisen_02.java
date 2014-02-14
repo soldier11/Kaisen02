@@ -9,12 +9,14 @@ import java.awt.event.KeyListener;
 import java.io.IOException;
 
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.border.LineBorder;
 
 class Kaisen_02 extends JFrame implements KeyListener {
 	Image[] img = new Image[3];// 画像の定義用[]個作成
-	int key_t[] = { 0, 0, 0, 0, 0 }; // UP, RIGHT, DOWN, LEFT，SPACE
+	boolean key_t[] = { false, false, false, false, false }; // UP, RIGHT, DOWN,
+																// LEFT，SPACE
 	final int MAPMAX_X = 5, MAPMAX_Y = 5;// 海戦マップの横×縦のマス数
 	final int MAPMIN_X = 100, MAPMIN_Y = 100;// 海戦マップの左上の座標
 	int phase = 0;// 艦の配置・可動・非可動にかかわる値
@@ -36,10 +38,7 @@ class Kaisen_02 extends JFrame implements KeyListener {
 		img[1] = getToolkit().getImage("src/Sea.png");// 海チップの画像
 		img[2] = getToolkit().getImage("src/LC.png");// 軽巡洋艦の画像
 		addKeyListener(this);// キー操作のインターフェースを呼び出す
-		ThreadClass threadcls = new ThreadClass();// ThreadClass()のインスタンスを生成する
-		Thread thread = new Thread(threadcls);// Thread()のインスタンスを生成する
-		thread.start();// Threadを開始する
-
+		new Thread(new ThreadClass()).start();// Threadを開始する
 		setDefaultCloseOperation(EXIT_ON_CLOSE);// ウィンドウの閉じるボタンを押すとプログラムが終了するようにする
 		setSize(800, 600);// Dimension(ウィンドウ？）のサイズセットする
 		MainPanel p = new MainPanel();
@@ -79,16 +78,16 @@ class Kaisen_02 extends JFrame implements KeyListener {
 			setLayout(null);
 			setBounds(0, 0, 800, 600);
 			setBackground(Color.BLACK);
-			this.add(subPanel());
+			// add(makeSubPanel());
 		}
 
-		public JPanel subPanel() {
-			JPanel sp = new JPanel();
-			sp.setBackground(Color.BLUE);// 会話ウインドウの色設定
-			sp.setBounds(0, 450, 784, 100);// 会話ウィンドウの描画
-			sp.setBorder(new LineBorder(Color.WHITE, 5, false));
-			return (sp);
-		}
+		// Paintより手前に表示されるのでpaintComponent中に移動してみた
+		/*
+		 * public JPanel makeSubPanel() { JPanel sp = new JPanel();
+		 * sp.setBackground(Color.BLUE);// 会話ウインドウの色設定 sp.setBounds(0, 450, 784,
+		 * 100);// 会話ウィンドウの描画 sp.setBorder(new LineBorder(Color.WHITE, 5,
+		 * false)); return sp; }
+		 */
 
 		@Override
 		// java.awt.Window内のpaint()を上書き
@@ -110,17 +109,32 @@ class Kaisen_02 extends JFrame implements KeyListener {
 
 			Font font = new Font(Font.MONOSPACED, Font.BOLD, 20); // フォントの設定・定義
 			g.setFont(font);// フォントをセットする
-			// buffer.setBackground(Color.BLUE);
+			// g.setColor(Color.BLUE);
 			// size = getSize();// サイズの呼び出し
 
 			// g.setColor(getBackground());//
 			// createImage()->getGraphics()->setColor(getBackgraound())
 			// 背景をとってきて色を付けた画像を情報を取得イメージを作成する
-			// g.fillRect(0, 0, size.width, size.height);// 画面の更新
+			// g.fillRect(0, 0, 800, 600);// 画面の更新
 
 			drawSea(g);// 海チップの描画
 
 			mapEnd();// カーソルマップ端移動処理
+			JLabel jl = new JLabel();
+
+			jl.setBounds(13, 450, 480, 100);
+			jl.setFont(font);
+			jl.setHorizontalTextPosition(JLabel.CENTER);
+			jl.setVerticalAlignment(JLabel.TOP);
+			jl.setForeground(Color.WHITE);
+			jl.setText("<HTML>テスト<br>配置する艦を選択してください");// 表示できたけど場合わけできん・・・
+			add(jl);
+
+			JPanel sp = new JPanel();
+			sp.setBackground(Color.BLUE);// 会話ウインドウの色設定
+			sp.setBounds(0, 450, 784, 100);// 会話ウィンドウの描画
+			sp.setBorder(new LineBorder(Color.WHITE, 5, false));
+
 			g.setColor(Color.WHITE);
 			if (phase == 0) {// TODO 配置する艦を選択（今後実装）
 				g.drawString("配置する艦を選択してください", 18, 530);
@@ -139,14 +153,13 @@ class Kaisen_02 extends JFrame implements KeyListener {
 
 			} else if (phase >= 3) {// 艦の先端を選べていない　可動状態にするには船首を選ぶ
 				g.drawImage(img[2], posLC.x, posLC.y, this);
-
-				g.drawString("艦の先端を選べていません。可動状態にするには船首を選んでください。", 18, 530);
+				jl.setText("艦の先端を選べていません。可動状態にするには船首を選んでください。");
+				add(jl);//機能しない？
 				phase = 2;
 			}
+			add(sp);// 会話ウィンドウの追加
 			System.out.println(posLC + " " + pos + " " + phase);// デバック
 			g.drawImage(img[0], pos.x, pos.y, this);// カーソルの描画
-			// g.drawImage(back, 0, 0, this);//
-			// gのクラス？どこ？画像全体をクラスとおいている？？bufferのこと？
 		}
 
 		public void drawSea(Graphics g) {// 海マップの配置 TODO　合成した画像を作り，バッファに貼るようにする
@@ -175,23 +188,23 @@ class Kaisen_02 extends JFrame implements KeyListener {
 
 	// カーソルの移動
 	public boolean action() {
-		if (key_t[0] == 1) {// UP
+		if (key_t[0] == true) {// UP
 			pos.y -= 30;
 			return true;
 		}
-		if (key_t[1] == 1) { // RIGHT
+		if (key_t[1] == true) { // RIGHT
 			pos.x += 30;
 			return true;
 		}
-		if (key_t[2] == 1) { // DOWN
+		if (key_t[2] == true) { // DOWN
 			pos.y += 30;
 			return true;
 		}
-		if (key_t[3] == 1) {// LEFT
+		if (key_t[3] == true) {// LEFT
 			pos.x -= 30;
 			return true;
 		}
-		if (key_t[4] == 1) {// SPACE
+		if (key_t[4] == true) {// SPACE
 			phase += 1;
 			return true;
 		}
@@ -203,19 +216,19 @@ class Kaisen_02 extends JFrame implements KeyListener {
 	public void keyPressed(KeyEvent e) {
 		switch (e.getKeyCode()) {
 		case KeyEvent.VK_UP:
-			key_t[0] = 1;
+			key_t[0] = true;
 			break;
 		case KeyEvent.VK_RIGHT:
-			key_t[1] = 1;
+			key_t[1] = true;
 			break;
 		case KeyEvent.VK_DOWN:
-			key_t[2] = 1;
+			key_t[2] = true;
 			break;
 		case KeyEvent.VK_LEFT:
-			key_t[3] = 1;
+			key_t[3] = true;
 			break;
 		case KeyEvent.VK_SPACE:
-			key_t[4] = 1;
+			key_t[4] = true;
 			break;
 		}
 	}
@@ -224,19 +237,19 @@ class Kaisen_02 extends JFrame implements KeyListener {
 	public void keyReleased(KeyEvent e) {
 		switch (e.getKeyCode()) {
 		case KeyEvent.VK_UP:
-			key_t[0] = 0;
+			key_t[0] = false;
 			break;
 		case KeyEvent.VK_RIGHT:
-			key_t[1] = 0;
+			key_t[1] = false;
 			break;
 		case KeyEvent.VK_DOWN:
-			key_t[2] = 0;
+			key_t[2] = false;
 			break;
 		case KeyEvent.VK_LEFT:
-			key_t[3] = 0;
+			key_t[3] = false;
 			break;
 		case KeyEvent.VK_SPACE:
-			key_t[4] = 0;
+			key_t[4] = false;
 			break;
 		}
 	}
