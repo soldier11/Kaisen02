@@ -1,3 +1,4 @@
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -12,6 +13,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.border.LineBorder;
+
 
 class Kaisen_02 extends JFrame implements KeyListener {
 	Image[] img = new Image[3];// 画像の定義用[]個作成
@@ -73,12 +75,34 @@ class Kaisen_02 extends JFrame implements KeyListener {
 	// Paint Method
 
 	public class MainPanel extends JPanel {
+		Font   font;
+		JLabel jl;
+		JPanel sp;
 
 		public MainPanel() throws IOException {
 			setLayout(null);
 			setBounds(0, 0, 800, 600);
 			setBackground(Color.BLACK);
 			// add(makeSubPanel());
+			//
+			font = new Font(Font.MONOSPACED, Font.BOLD, 20); // フォントの設定・定義
+
+			jl = new JLabel();
+			jl.setBounds(13, 450, 480, 100);
+			jl.setFont(font);
+			jl.setHorizontalTextPosition(JLabel.CENTER);
+			jl.setVerticalAlignment(JLabel.TOP);
+			jl.setForeground(Color.WHITE);
+			jl.setText("<HTML>テスト<br>配置する艦を選択してください");  // 表示できたけど場合わけできん・・・
+			add(jl);
+
+			sp = new JPanel();
+			sp.setBackground(Color.BLUE);    // 会話ウインドウの色設定
+			sp.setBounds(0, 450, 784, 100);  // 会話ウィンドウの描画
+			sp.setBorder(new LineBorder(Color.WHITE, 5, false));
+			sp.setLayout(new BorderLayout());
+			sp.add(jl);
+			add(sp);  // 会話ウィンドウの追加
 		}
 
 		// Paintより手前に表示されるのでpaintComponent中に移動してみた
@@ -107,7 +131,6 @@ class Kaisen_02 extends JFrame implements KeyListener {
 			// if (buffer == null)
 			// return;
 
-			Font font = new Font(Font.MONOSPACED, Font.BOLD, 20); // フォントの設定・定義
 			g.setFont(font);// フォントをセットする
 			// g.setColor(Color.BLUE);
 			// size = getSize();// サイズの呼び出し
@@ -118,22 +141,7 @@ class Kaisen_02 extends JFrame implements KeyListener {
 			// g.fillRect(0, 0, 800, 600);// 画面の更新
 
 			drawSea(g);// 海チップの描画
-
 			mapEnd();// カーソルマップ端移動処理
-			JLabel jl = new JLabel();
-
-			jl.setBounds(13, 450, 480, 100);
-			jl.setFont(font);
-			jl.setHorizontalTextPosition(JLabel.CENTER);
-			jl.setVerticalAlignment(JLabel.TOP);
-			jl.setForeground(Color.WHITE);
-			jl.setText("<HTML>テスト<br>配置する艦を選択してください");// 表示できたけど場合わけできん・・・
-			add(jl);
-
-			JPanel sp = new JPanel();
-			sp.setBackground(Color.BLUE);// 会話ウインドウの色設定
-			sp.setBounds(0, 450, 784, 100);// 会話ウィンドウの描画
-			sp.setBorder(new LineBorder(Color.WHITE, 5, false));
 
 			g.setColor(Color.WHITE);
 			if (phase == 0) {// TODO 配置する艦を選択（今後実装）
@@ -153,11 +161,9 @@ class Kaisen_02 extends JFrame implements KeyListener {
 
 			} else if (phase >= 3) {// 艦の先端を選べていない　可動状態にするには船首を選ぶ
 				g.drawImage(img[2], posLC.x, posLC.y, this);
-				jl.setText("艦の先端を選べていません。可動状態にするには船首を選んでください。");
-				add(jl);//機能しない？
+				jl.setText("<HTML>艦の先端を選べていません。<br>可動状態にするには船首を選んでください。");
 				phase = 2;
 			}
-			add(sp);// 会話ウィンドウの追加
 			System.out.println(posLC + " " + pos + " " + phase);// デバック
 			g.drawImage(img[0], pos.x, pos.y, this);// カーソルの描画
 		}
