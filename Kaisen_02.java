@@ -1,6 +1,5 @@
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Image;
@@ -15,19 +14,17 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.border.LineBorder;
 
-
 class Kaisen_02 extends JFrame implements KeyListener {
 	Image[] img = new Image[3];// 画像の定義用[]個作成
-	boolean key_t[] = { false, false, false, false, false }; // UP, RIGHT, DOWN,
-																// LEFT，SPACE
-	final int MAPMAX_X = 5, MAPMAX_Y = 5;// 海戦マップの横×縦のマス数
+	// キーのオン・オフ　UP, RIGHT, DOWN, LEFT，SPACE
+	boolean key_t[] = { false, false, false, false, false };
+	final int MAPMAX_X = 8, MAPMAX_Y = 8;// 海戦マップの横×縦のマス数
 	final int MAPMIN_X = 100, MAPMIN_Y = 100;// 海戦マップの左上の座標
 	int phase = 0;// 艦の配置・可動・非可動にかかわる値
 	Point pos = new Point(MAPMIN_X, MAPMIN_Y);// カーソルの座標
 	Point posLC = new Point(MAPMIN_X, MAPMIN_Y);// 軽巡洋艦の艦首の座標
-	Dimension size;// パネルのサイズ定義
-	Image back;// 背景画像の定義
-	Graphics buffer;// バッファの定義
+	boolean isShip[] = { false };// 艦を掴んでいるか
+	int[] ship_len = { 3 };// 艦の長さ
 
 	// Main
 	public static void main(String args[]) throws IOException {
@@ -57,13 +54,6 @@ class Kaisen_02 extends JFrame implements KeyListener {
 		MainPanel p = new MainPanel();
 		getContentPane().add(p);
 		setVisible(true);// ウィンドウを描画する
-		// getContentPane().setBackground(Color.WHITE);
-
-		// size = getSize();// setSizeで設定したサイズをgetsizeで呼び出し，sizeと定義する
-		// back = createImage(size.width, size.height);//
-		// sizeの中のwidth（幅）height（高さ）を使い，backイメージを作成
-		// if (back == null)// 背景が作成されなかったらエラー分を表示する
-		// System.err.print("createImage Error");
 	}
 
 	// Runnable Class
@@ -74,8 +64,7 @@ class Kaisen_02 extends JFrame implements KeyListener {
 				while (true) {
 					if (action())// キー入力されてカーソル移動が行われた場合
 						repaint();// paint()の再実行
-
-					Thread.sleep(100);// スレッドスリープによる画面の切り替えタイミングの決定
+					Thread.sleep(140);// スレッドスリープによる画面の切り替えタイミングの決定
 				}
 			} catch (InterruptedException e) {
 				e.printStackTrace();
@@ -86,7 +75,7 @@ class Kaisen_02 extends JFrame implements KeyListener {
 	// Paint Method
 
 	public class MainPanel extends JPanel {
-		Font   font;
+		Font font;
 		JLabel jl;
 		JPanel sp;
 
@@ -94,85 +83,60 @@ class Kaisen_02 extends JFrame implements KeyListener {
 			setLayout(null);
 			setBounds(0, 0, 800, 600);
 			setBackground(Color.BLACK);
-			// add(makeSubPanel());
-			//
+
 			font = new Font(Font.MONOSPACED, Font.BOLD, 20); // フォントの設定・定義
 
+			// 会話ウィンドウに表示するラベルの作成
 			jl = new JLabel();
-			jl.setBounds(13, 450, 480, 100);
+			jl.setBounds(13, 400, 784, 150);
 			jl.setFont(font);
 			jl.setHorizontalTextPosition(JLabel.CENTER);
 			jl.setVerticalAlignment(JLabel.TOP);
 			jl.setForeground(Color.WHITE);
-			jl.setText("<HTML>テスト<br>配置する艦を選択してください");  // 表示できたけど場合わけできん・・・
-			add(jl);
+			jl.setText("<HTML>配置する艦を選択してください<br> SPACE：軽巡洋艦");
+			add(jl);// 会話ウィンドウのラベルをフレームに追加
 
+			// 会話ウィンドウの作成
 			sp = new JPanel();
-			sp.setBackground(Color.BLUE);    // 会話ウインドウの色設定
-			sp.setBounds(0, 450, 784, 100);  // 会話ウィンドウの描画
+			sp.setBackground(Color.BLUE); // 会話ウインドウの色設定
+			sp.setBounds(0, 400, 784, 150); // 会話ウィンドウの描画
 			sp.setBorder(new LineBorder(Color.WHITE, 5, false));
 			sp.setLayout(new BorderLayout());
 			sp.add(jl);
-			add(sp);  // 会話ウィンドウの追加
+			add(sp); // 会話ウィンドウをフレームに追加
 		}
 
-		// Paintより手前に表示されるのでpaintComponent中に移動してみた
-		/*
-		 * public JPanel makeSubPanel() { JPanel sp = new JPanel();
-		 * sp.setBackground(Color.BLUE);// 会話ウインドウの色設定 sp.setBounds(0, 450, 784,
-		 * 100);// 会話ウィンドウの描画 sp.setBorder(new LineBorder(Color.WHITE, 5,
-		 * false)); return sp; }
-		 */
-
 		@Override
-		// java.awt.Window内のpaint()を上書き
 		public void paintComponent(Graphics g) {// gのフィールドはここに書いてある
 			super.paintComponent(g);
 
-			// if (back == null)
-			// return;
-
-			// buffer = back.getGraphics();//
-			// （back）createImageクラスの中にあるgetGraphicsメソッドを呼び出している
-
-			// JPanel buffer = new JPanel();//
-			// （back）createImageクラスの中にあるgetGraphicsメソッドを呼び出している
-			// buffer.setBounds(0, 0,816, 600);
-
-			// if (buffer == null)
-			// return;
-
 			g.setFont(font);// フォントをセットする
-			// g.setColor(Color.BLUE);
-			// size = getSize();// サイズの呼び出し
-
-			// g.setColor(getBackground());//
-			// createImage()->getGraphics()->setColor(getBackgraound())
-			// 背景をとってきて色を付けた画像を情報を取得イメージを作成する
-			// g.fillRect(0, 0, 800, 600);// 画面の更新
-
 			drawSea(g);// 海チップの描画
 			mapEnd();// カーソルマップ端移動処理
 
 			g.setColor(Color.WHITE);
 			if (phase == 0) {// TODO 配置する艦を選択（今後実装）
-				g.drawString("配置する艦を選択してください", 18, 530);
+				isShip[0] = false;
 			} else if (phase == 1) {// 艦の召喚　可動状態
+				isShip[0] = true;
 				posLC.x = pos.x;// posLC =pos;はオブジェクトのコピーではなく参照コピーとなるため×
 				posLC.y = pos.y;
 
 				g.drawImage(img[2], pos.x, pos.y, this);
 
 			} else if (phase == 2) {// 艦の投錨　固定状態へ
+				isShip[0] = false;
 				g.drawImage(img[2], posLC.x, posLC.y, this);
-
+				jl.setText("<HTML>投錨しました。ここに停泊させます。<br>SPACE：抜錨（移動）");
 			} else if (phase >= 3 && posLC.x == pos.x && posLC.y == pos.y) {// 艦の抜錨　可動状態へ
+				isShip[0] = true;
 				g.drawImage(img[2], pos.x, pos.y, this);
+				jl.setText("<HTML>抜錨しました。停泊場所を決定してください。<br>SPACE：投錨（停泊）");
 				phase = 1;
 
 			} else if (phase >= 3) {// 艦の先端を選べていない　可動状態にするには船首を選ぶ
 				g.drawImage(img[2], posLC.x, posLC.y, this);
-				jl.setText("<HTML>艦の先端を選べていません。<br>可動状態にするには船首を選んでください。");
+				jl.setText("<HTML>艦の船首を選べていません。<br>可動状態にするには船首を選んでSPACEを押してください。");
 				phase = 2;
 			}
 			System.out.println(posLC + " " + pos + " " + phase);// デバック
@@ -194,13 +158,18 @@ class Kaisen_02 extends JFrame implements KeyListener {
 				pos.x += 30 * MAPMAX_X;
 			} else if (pos.x > MAPMIN_X + 30 * (MAPMAX_X - 1)) {
 				pos.x -= 30 * MAPMAX_X;
+			} else if (isShip[0] == true
+					&& pos.y < MAPMIN_Y) {
+				pos.y += 30 * (MAPMAX_Y - ship_len[0] + 1);
 			} else if (pos.y < MAPMIN_Y) {
 				pos.y += 30 * MAPMAX_Y;
+			} else if (isShip[0] == true
+					&& pos.y > MAPMIN_Y + 30 * (MAPMAX_Y - ship_len[0])) {
+				pos.y -= 30 * (MAPMAX_Y - ship_len[0] + 1);
 			} else if (pos.y > MAPMIN_Y + 30 * (MAPMAX_Y - 1)) {
 				pos.y -= 30 * MAPMAX_Y;
 			}
 		}
-
 	}
 
 	// カーソルの移動
