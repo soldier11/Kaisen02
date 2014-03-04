@@ -124,16 +124,19 @@ class Kaisen_02 extends JFrame implements KeyListener {
 				posLC.y = pos.y;
 				g.drawImage(img[2], pos.x, pos.y, this);
 
-			} else if (phase == 2) {// 艦の投錨　固定状態へ
+			} else if (quar == true && phase == 2) {// 艦の抜錨　可動状態へ
 				isShip[0] = false;
-				g.drawImage(img[2], posLC.x, posLC.y, this);
-				jl.setText("<HTML>投錨しました。ここに停泊させます。<br>SPACE：抜錨（移動）");
-			} else if (quar == true && phase >= 2) {// 艦の抜錨　可動状態へ
 				AffineTransform at = new AffineTransform();
 				at.setToRotation(Math.toRadians(-90), 15, 15);
 				g2.translate(posLC.x,posLC.y);
 				g2.drawImage(img[2],at,this);
 			    g2.translate(-posLC.x,-posLC.y);
+			    
+			} else if (phase == 2) {// 艦の投錨　固定状態へ
+				isShip[0] = false;
+				g.drawImage(img[2], posLC.x, posLC.y, this);
+				jl.setText("<HTML>投錨しました。ここに停泊させます。<br>SPACE：抜錨（移動）");
+			
 						
 			} else if (phase >= 3 && posLC.x == pos.x && posLC.y == pos.y) {// 艦の抜錨　可動状態へ
 				isShip[0] = true;
@@ -161,9 +164,9 @@ class Kaisen_02 extends JFrame implements KeyListener {
 
 		// カーソルが海マップをはみ出したときに反対側から戻ってくるような処理
 		public void mapEnd() {
-			if (pos.x < MAPMIN_X) {
-				pos.x += 30 * MAPMAX_X;
-			} else if (pos.x > MAPMIN_X + 30 * (MAPMAX_X - 1)) {
+			if (pos.x < MAPMIN_X) {// マップ左端にカーソルが到達したとき．
+				pos.x += 30 * MAPMAX_X;// マップ右端にカーソルを移動させる
+			} else if (pos.x > MAPMIN_X + 30 * (MAPMAX_X - 1)) {// マップ
 				pos.x -= 30 * MAPMAX_X;
 			} else if (isShip[0] == true
 					
