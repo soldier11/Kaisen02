@@ -47,9 +47,9 @@ class Kaisen_02 extends JFrame implements KeyListener {
 	// Constructor
 	public Kaisen_02() throws IOException {
 		super("海戦ゲーム");// スーパークラスであるJFrameのコンストラクタを呼び出す "フレームタイトル"
-		img[0] = getToolkit().getImage("src/Select.png");// カーソルの画像
-		img[1] = getToolkit().getImage("src/Sea.png");// 海チップの画像
-		img[2] = getToolkit().getImage("src/LC.png");// 軽巡洋艦の画像
+		img[0] = getToolkit().getImage("resource/Select.png");// カーソルの画像
+		img[1] = getToolkit().getImage("resource/Sea.png");// 海チップの画像
+		img[2] = getToolkit().getImage("resource/LC.png");// 軽巡洋艦の画像
 		addKeyListener(this);// キー操作のインターフェースを呼び出す
 		new Thread(new ThreadClass()).start();// Threadを開始する
 		setDefaultCloseOperation(EXIT_ON_CLOSE);// ウィンドウの閉じるボタンを押すとプログラムが終了するようにする
