@@ -2,10 +2,12 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Point;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.geom.AffineTransform;
 import java.io.IOException;
 
 import javax.swing.JFrame;
@@ -16,8 +18,8 @@ import javax.swing.border.LineBorder;
 
 class Kaisen_02 extends JFrame implements KeyListener {
 	Image[] img = new Image[3];// 画像の定義用[]個作成
-	// キーのオン・オフ　UP, RIGHT, DOWN, LEFT，SPACE
-	boolean key_t[] = { false, false, false, false, false };
+	// キーのオン・オフ　UP, RIGHT, DOWN, LEFT，SPACE，Z
+	boolean key_t[] = { false, false, false, false, false ,false};
 	final int MAPMAX_X = 8, MAPMAX_Y = 8;// 海戦マップの横×縦のマス数
 	final int MAPMIN_X = 100, MAPMIN_Y = 100;// 海戦マップの左上の座標
 	int phase = 0;// 艦の配置・可動・非可動にかかわる値
@@ -25,6 +27,7 @@ class Kaisen_02 extends JFrame implements KeyListener {
 	Point posLC = new Point(MAPMIN_X, MAPMIN_Y);// 軽巡洋艦の艦首の座標
 	boolean isShip[] = { false };// 艦を掴んでいるか
 	int[] ship_len = { 3 };// 艦の長さ
+	boolean quar =false;// 艦のむき縦T，横F
 
 	// Main
 	public static void main(String args[]) throws IOException {
@@ -51,6 +54,7 @@ class Kaisen_02 extends JFrame implements KeyListener {
 		new Thread(new ThreadClass()).start();// Threadを開始する
 		setDefaultCloseOperation(EXIT_ON_CLOSE);// ウィンドウの閉じるボタンを押すとプログラムが終了するようにする
 		setSize(800, 600);// Dimension(ウィンドウ？）のサイズセットする
+		setResizable(false);// ウィンドウリサイズ無効化
 		MainPanel p = new MainPanel();
 		getContentPane().add(p);
 		setVisible(true);// ウィンドウを描画する
@@ -81,39 +85,36 @@ class Kaisen_02 extends JFrame implements KeyListener {
 
 		public MainPanel() throws IOException {
 			setLayout(null);
-			setBounds(0, 0, 800, 600);
 			setBackground(Color.BLACK);
 
 			font = new Font(Font.MONOSPACED, Font.BOLD, 20); // フォントの設定・定義
 
 			// 会話ウィンドウに表示するラベルの作成
 			jl = new JLabel();
-			jl.setBounds(13, 400, 784, 150);
 			jl.setFont(font);
 			jl.setHorizontalTextPosition(JLabel.CENTER);
 			jl.setVerticalAlignment(JLabel.TOP);
 			jl.setForeground(Color.WHITE);
 			jl.setText("<HTML>配置する艦を選択してください<br> SPACE：軽巡洋艦");
-			add(jl);// 会話ウィンドウのラベルをフレームに追加
-
+			
 			// 会話ウィンドウの作成
 			sp = new JPanel();
 			sp.setBackground(Color.BLUE); // 会話ウインドウの色設定
-			sp.setBounds(0, 400, 784, 150); // 会話ウィンドウの描画
+			sp.setBounds(0, 422, 795, 150); // 会話ウィンドウの描画
 			sp.setBorder(new LineBorder(Color.WHITE, 5, false));
 			sp.setLayout(new BorderLayout());
-			sp.add(jl);
+			sp.add(jl);// ラベルを会話ウィンドウに追加
 			add(sp); // 会話ウィンドウをフレームに追加
 		}
 
 		@Override
 		public void paintComponent(Graphics g) {// gのフィールドはここに書いてある
 			super.paintComponent(g);
-
+			Graphics2D g2 = (Graphics2D) g;
 			g.setFont(font);// フォントをセットする
 			drawSea(g);// 海チップの描画
 			mapEnd();// カーソルマップ端移動処理
-
+	
 			g.setColor(Color.WHITE);
 			if (phase == 0) {// TODO 配置する艦を選択（今後実装）
 				isShip[0] = false;
@@ -121,19 +122,25 @@ class Kaisen_02 extends JFrame implements KeyListener {
 				isShip[0] = true;
 				posLC.x = pos.x;// posLC =pos;はオブジェクトのコピーではなく参照コピーとなるため×
 				posLC.y = pos.y;
-
 				g.drawImage(img[2], pos.x, pos.y, this);
 
 			} else if (phase == 2) {// 艦の投錨　固定状態へ
 				isShip[0] = false;
 				g.drawImage(img[2], posLC.x, posLC.y, this);
 				jl.setText("<HTML>投錨しました。ここに停泊させます。<br>SPACE：抜錨（移動）");
+			} else if (quar == true && phase >= 2) {// 艦の抜錨　可動状態へ
+				AffineTransform at = new AffineTransform();
+				at.setToRotation(Math.toRadians(-90), 15, 15);
+				g2.translate(posLC.x,posLC.y);
+				g2.drawImage(img[2],at,this);
+			    g2.translate(-posLC.x,-posLC.y);
+						
 			} else if (phase >= 3 && posLC.x == pos.x && posLC.y == pos.y) {// 艦の抜錨　可動状態へ
 				isShip[0] = true;
 				g.drawImage(img[2], pos.x, pos.y, this);
 				jl.setText("<HTML>抜錨しました。停泊場所を決定してください。<br>SPACE：投錨（停泊）");
 				phase = 1;
-
+			
 			} else if (phase >= 3) {// 艦の先端を選べていない　可動状態にするには船首を選ぶ
 				g.drawImage(img[2], posLC.x, posLC.y, this);
 				jl.setText("<HTML>艦の船首を選べていません。<br>可動状態にするには船首を選んでSPACEを押してください。");
@@ -159,6 +166,7 @@ class Kaisen_02 extends JFrame implements KeyListener {
 			} else if (pos.x > MAPMIN_X + 30 * (MAPMAX_X - 1)) {
 				pos.x -= 30 * MAPMAX_X;
 			} else if (isShip[0] == true
+					
 					&& pos.y < MAPMIN_Y) {
 				pos.y += 30 * (MAPMAX_Y - ship_len[0] + 1);
 			} else if (pos.y < MAPMIN_Y) {
@@ -194,6 +202,14 @@ class Kaisen_02 extends JFrame implements KeyListener {
 			phase += 1;
 			return true;
 		}
+		if (key_t[5] == true) {// Z
+			if(quar == true){
+				quar =false;
+			}else{
+				quar=true;	
+			}
+			return true;
+		}
 		return false;
 	}
 
@@ -216,8 +232,11 @@ class Kaisen_02 extends JFrame implements KeyListener {
 		case KeyEvent.VK_SPACE:
 			key_t[4] = true;
 			break;
+		case KeyEvent.VK_Z:
+			key_t[5] = true;
+			break;
 		}
-	}
+			}
 
 	@Override
 	public void keyReleased(KeyEvent e) {
@@ -236,6 +255,9 @@ class Kaisen_02 extends JFrame implements KeyListener {
 			break;
 		case KeyEvent.VK_SPACE:
 			key_t[4] = false;
+			break;
+		case KeyEvent.VK_Z:
+			key_t[5] = false;
 			break;
 		}
 	}
